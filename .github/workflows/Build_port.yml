@@ -1,0 +1,93 @@
+name: Build port
+on:
+on:
+  workflow_dispatch:
+    inputs:
+      URL:
+        description: "待移植的系统包下载地址"
+        required: true
+      OS_version:
+        description: "待打包的OS版本号(可为空)"
+      Bottom_URL:
+        description: "底包下载地址"
+        required: true
+      Bottom_DEVICE:
+        description: "移植机型"
+        required: true
+        default: 'lmi'
+        type: choice
+        options:
+        - lmi
+        - cas
+        - vermeer
+      IMAGE_TYPE:
+        description: "IMG格式，可选erofs、ext"
+        required: true
+        default: 'erofs'
+        type: choice
+        options:
+        - erofs
+        - ext
+      EXT4_RW:
+        description: '读写'
+        required: true
+        type: boolean
+      data_pass:
+        description: 'data去除强制加密'
+        required: true
+        type: boolean
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 克隆
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.SECRET_NAME }}
+          repository: Meetingf/hyperOS_A15_port
+      - name: -准备环境
+        run: |
+          sudo timedatectl set-timezone Asia/Shanghai
+          if [ -n "${{ github.event.inputs.OS_version }}" ]; then
+              echo "OS_version=${{ github.event.inputs.OS_version }}" >> $GITHUB_ENV
+          fi
+          echo "EXT4_RW=${{ github.event.inputs.EXT4_RW }}" >> $GITHUB_ENV
+          echo "IMAGE_TYPE=${{ github.event.inputs.IMAGE_TYPE }}" >> $GITHUB_ENV
+          echo "URL=${{ github.event.inputs.URL }}" >> $GITHUB_ENV
+          echo "Bottom_URL=${{ github.event.inputs.Bottom_URL }}" >> $GITHUB_ENV
+          echo "Bottom_DEVICE=${{ github.event.inputs.Bottom_DEVICE }}" >> $GITHUB_ENV
+          sudo apt install python3 python3-pip aria2 zip p7zip-full tar zstd dos2unix
+          sudo apt --fix-broken install
+          sudo apt update --fix-missing
+          pip3 install --upgrade pip
+          pip3 install pycryptodome
+          pip3 install setuptools
+          pip3 install docopt
+          pip3 install requests
+          pip3 install beautifulsoup4
+          pip3 install --ignore-installed pyyaml
+      - name: -制作rom
+        run: |
+          sudo bash "$GITHUB_WORKSPACE"/main.sh ${Bottom_URL} ${URL} ${Bottom_DEVICE} ${GITHUB_WORKSPACE} $GITHUB_ENV ${IMAGE_TYPE} ${EXT4_RW} ${OS_version}
+      - name: -处理包
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE"/GithubRelease
+          cd "$GITHUB_WORKSPACE"/GithubRelease
+          echo "${{ env.NEW_PACKAGE_NAME }}"
+          sudo split -b 1536M -d "$GITHUB_WORKSPACE"/zip/"${{ env.NEW_PACKAGE_NAME }}" "${{ env.NEW_PACKAGE_NAME }}"
+          cd "$GITHUB_WORKSPACE"
+          touch file.log
+          echo "${{ env.NEW_PACKAGE_NAME }}" > file.log
+      - name: -上传到Github Release
+        uses: ncipollo/release-action@main
+        with:
+          owner: Meetingf
+          repo: hyperOS_A15_port
+          artifacts: "${{ github.workspace }}/GithubRelease/*"
+          name: "${{ env.OS_version }}"
+          tag: "${{ env.OS_version }}"
+          bodyFile: "${{ github.workspace }}/file.log"
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          token: ${{ secrets.SECRET_NAME }}
