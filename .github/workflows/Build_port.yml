@@ -1,6 +1,5 @@
 name: Build port
 on:
-on:
   workflow_dispatch:
     inputs:
       URL:
