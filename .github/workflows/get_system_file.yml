@@ -52,7 +52,7 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE"/img_port
           for i in system product system_ext mi_ext; do
             echo "正在提取$i"
-            "$GITHUB_WORKSPACE"/bin/${tools}/payload_extract -i "$GITHUB_WORKSPACE"/update.zip -t zip --extract=${i} -o "$GITHUB_WORKSPACE"/mods
+            sudo "$GITHUB_WORKSPACE"/bin/${tools}/payload_extract -i "$GITHUB_WORKSPACE"/update.zip -t zip --extract=${i} -o "$GITHUB_WORKSPACE"/mods
             info=$(sudo python3 "$GITHUB_WORKSPACE"/bin/${tools}/gettype.py "$GITHUB_WORKSPACE"/mods/$i.img)
             echo "正在分解$i($info)"
             if [ "$info" == "ext" ]; then
@@ -63,7 +63,7 @@ jobs:
             rm -rf "$GITHUB_WORKSPACE"/mods/$i.img
           done
           mkdir -p "$GITHUB_WORKSPACE"/release
-          find "$GITHUB_WORKSPACE"/img_port -type f -name "*${file_name}*" -exec tar -czvf "$GITHUB_WORKSPACE"/release/files.tar.gz {} +
+          sudo find "$GITHUB_WORKSPACE"/img_port -type f -name "*${file_name}*" -exec tar -czvf "$GITHUB_WORKSPACE"/release/files.tar.gz {} +
       - name: 📤 Post to Release (发布到 Release)
         uses: softprops/action-gh-release@v1
         with:
