@@ -63,11 +63,11 @@ jobs:
             sudo rm -rf "$GITHUB_WORKSPACE"/mods/$i.img
           done
           mkdir -p "$GITHUB_WORKSPACE"/release
-          sudo find "$GITHUB_WORKSPACE"/img_port -type f -iname "*${file_name}*" -exec sudo tar -czvf "$GITHUB_WORKSPACE"/release/files.tar.gz {} +
+          sudo find "$GITHUB_WORKSPACE"/img_port -type f -iname "*nfc*" -print0 | xargs -0 7z a "$GITHUB_WORKSPACE"/release/files.7z
       - name: 📤 Post to Release (发布到 Release)
         uses: softprops/action-gh-release@v1
         with:
-          files: $GITHUB_WORKSPACE/release/files.tar.gz
+          files: $GITHUB_WORKSPACE/release/files.7z
           name: file_${{ github.event.inputs.file_name }}
           tag_name: file_${{ github.event.inputs.file_name }}
           body: |
