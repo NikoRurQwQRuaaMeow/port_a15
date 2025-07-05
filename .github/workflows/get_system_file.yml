@@ -1,0 +1,75 @@
+name: Get system file
+on:
+  workflow_dispatch:
+    inputs:
+      URL:
+        description: "待提取文件的系统包下载地址"
+        required: true
+      file_name:
+        description: "待提取文件名称"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 最大化构建环境
+        uses: easimon/maximize-build-space@master
+        with:
+          swap-size-mb: 8192
+          root-reserve-mb: 4096
+          temp-reserve-mb: 4096
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+      - name: 克隆
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.SECRET_NAME }}
+          repository: Meetingf/hyperOS_A15_port
+      - name: -准备环境
+        run: |
+          sudo timedatectl set-timezone Asia/Shanghai
+          echo "URL=${{ github.event.inputs.URL }}" >> $GITHUB_ENV
+          echo "file_name=${{ github.event.inputs.file_name }}" >> $GITHUB_ENV
+          sudo apt install python3 python3-pip aria2 zip p7zip-full tar zstd dos2unix
+          sudo apt --fix-broken install
+          sudo apt update --fix-missing
+          pip3 install --upgrade pip
+          pip3 install pycryptodome
+          pip3 install setuptools
+          pip3 install docopt
+          pip3 install requests
+          pip3 install beautifulsoup4
+          pip3 install --ignore-installed pyyaml
+      - name: -制作rom
+        run: |
+          aria2c -x16 -j$(nproc) -U "Mozilla/5.0" -d "$GITHUB_WORKSPACE" "${URL}"
+          case "$(uname -m)" in
+              "x86_64") tools=x86 ;;
+              "aarch64"|"arm64") tools=arm64 ;;
+              *) echo "Unknown architecture: $(uname -m)" ;;
+          esac
+          for i in system product system_ext mi_ext; do
+            echo "正在提取$i"
+            "$GITHUB_WORKSPACE"/bin/${tools}/payload_extract -i "$GITHUB_WORKSPACE"/${ZIP_NAME_Transplantation} -t zip --extract=${i} -o "$GITHUB_WORKSPACE"/mods
+            info=$(sudo python3 "$GITHUB_WORKSPACE"/bin/${tools}/gettype.py "$GITHUB_WORKSPACE"/mods/$i.img)
+            echo "正在分解$i($info)"
+            if [ "$info" == "ext" ]; then
+              sudo python3 "$GITHUB_WORKSPACE"/bin/${tools}/imgextractorLinux.py "$GITHUB_WORKSPACE"/mods/$i.img "$GITHUB_WORKSPACE"/img_port >/dev/null
+            elif [ "$info" == "erofs" ]; then
+              sudo "$GITHUB_WORKSPACE"/bin/${tools}/extract.erofs -i "$GITHUB_WORKSPACE"/mods/$i.img -o "$GITHUB_WORKSPACE"/img_port -x >/dev/null
+            fi
+            rm -rf "$GITHUB_WORKSPACE"/mods/$i.img
+          done
+          mkdir -p "$GITHUB_WORKSPACE"/release
+          find "$GITHUB_WORKSPACE"/img_port -type f -name "*${file_name}*" -exec tar -czvf "$GITHUB_WORKSPACE"/release/files.tar.gz {} +
+    - name: 📤 Post to Release (发布到 Release)
+      uses: softprops/action-gh-release@v1
+      with:
+        files: "$GITHUB_WORKSPACE"/release/files.tar.gz
+        name: file_${{ github.event.inputs.file_name }}
+        tag_name: file_${{ github.event.inputs.file_name }}
+        body: |
+          - **提取文件:** ${{ github.event.inputs.file_name }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
