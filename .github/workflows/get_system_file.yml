@@ -61,7 +61,7 @@ jobs:
             elif [ "$info" == "erofs" ]; then
               sudo "$GITHUB_WORKSPACE"/bin/${tools}/extract.erofs -i "$GITHUB_WORKSPACE"/mods/$i.img -o "$GITHUB_WORKSPACE"/img_port -x >/dev/null
             fi
-            rm -rf "$GITHUB_WORKSPACE"/mods/$i.img
+            sudo rm -rf "$GITHUB_WORKSPACE"/mods/$i.img
           done
           mkdir -p "$GITHUB_WORKSPACE"/release
           sudo find "$GITHUB_WORKSPACE"/img_port -type f -name "*${file_name}*" -exec tar -czvf "$GITHUB_WORKSPACE"/release/files.tar.gz {} +
