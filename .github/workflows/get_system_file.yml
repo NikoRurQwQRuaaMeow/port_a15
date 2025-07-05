@@ -65,7 +65,7 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE"/release
           tmpdir=$(mktemp -d)
           sudo find "$GITHUB_WORKSPACE"/img_port -type f -iname "*nfc*" -exec rsync -R {} "$tmpdir" \;
-          7z a "$GITHUB_WORKSPACE"/release/files.7z "$tmpdir"/*
+          sudo 7z a "$GITHUB_WORKSPACE"/release/files.7z "$tmpdir"/*
           rm -rf "$tmpdir"
       - name: 📤 Post to Release (发布到 Release)
         uses: softprops/action-gh-release@v1
