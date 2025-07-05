@@ -50,6 +50,7 @@ jobs:
               *) echo "Unknown architecture: $(uname -m)" ;;
           esac
           mkdir -p "$GITHUB_WORKSPACE"/img_port
+          ls "$GITHUB_WORKSPACE"
           for i in system product system_ext mi_ext; do
             echo "正在提取$i"
             sudo "$GITHUB_WORKSPACE"/bin/${tools}/payload_extract -i "$GITHUB_WORKSPACE"/update.zip -t zip --extract=${i} -o "$GITHUB_WORKSPACE"/mods
