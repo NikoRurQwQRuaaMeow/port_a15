@@ -43,7 +43,7 @@ jobs:
           pip3 install --ignore-installed pyyaml
       - name: -制作rom
         run: |
-          aria2c -x16 -j$(nproc) -U "Mozilla/5.0" -d "$GITHUB_WORKSPACE"/update.zip "${URL}"
+          aria2c -x16 -j$(nproc) -U "Mozilla/5.0" -d "$GITHUB_WORKSPACE" -o update.zip "${URL}"
           case "$(uname -m)" in
               "x86_64") tools=x86 ;;
               "aarch64"|"arm64") tools=arm64 ;;
