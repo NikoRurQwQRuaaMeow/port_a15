@@ -63,13 +63,13 @@ jobs:
           done
           mkdir -p "$GITHUB_WORKSPACE"/release
           find "$GITHUB_WORKSPACE"/img_port -type f -name "*${file_name}*" -exec tar -czvf "$GITHUB_WORKSPACE"/release/files.tar.gz {} +
-    - name: 📤 Post to Release (发布到 Release)
-      uses: softprops/action-gh-release@v1
-      with:
-        files: "$GITHUB_WORKSPACE"/release/files.tar.gz
-        name: file_${{ github.event.inputs.file_name }}
-        tag_name: file_${{ github.event.inputs.file_name }}
-        body: |
-          - **提取文件:** ${{ github.event.inputs.file_name }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 📤 Post to Release (发布到 Release)
+        uses: softprops/action-gh-release@v1
+        with:
+          files: $GITHUB_WORKSPACE/release/files.tar.gz
+          name: file_${{ github.event.inputs.file_name }}
+          tag_name: file_${{ github.event.inputs.file_name }}
+          body: |
+            - **提取文件:** ${{ github.event.inputs.file_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
