@@ -63,7 +63,7 @@ jobs:
             sudo rm -rf "$GITHUB_WORKSPACE"/mods/$i.img
           done
           mkdir -p "$GITHUB_WORKSPACE"/release
-          sudo find "$GITHUB_WORKSPACE"/img_port -type f -iname "*nfc*" | sort -u | xargs -0 7z a "$GITHUB_WORKSPACE"/release/files.7z
+          sudo find "$GITHUB_WORKSPACE"/img_port -type f -iname "*nfc*" -print0 | sort -u | xargs -0 7z a "$GITHUB_WORKSPACE"/release/files.7z
       - name: 📤 Post to Release (发布到 Release)
         uses: softprops/action-gh-release@v1
         with:
