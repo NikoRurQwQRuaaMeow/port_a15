@@ -43,15 +43,16 @@ jobs:
           pip3 install --ignore-installed pyyaml
       - name: -制作rom
         run: |
-          aria2c -x16 -j$(nproc) -U "Mozilla/5.0" -d "$GITHUB_WORKSPACE" "${URL}"
+          aria2c -x16 -j$(nproc) -U "Mozilla/5.0" -d input -o "$GITHUB_WORKSPACE"/update.zip "${URL}"
           case "$(uname -m)" in
               "x86_64") tools=x86 ;;
               "aarch64"|"arm64") tools=arm64 ;;
               *) echo "Unknown architecture: $(uname -m)" ;;
           esac
+          mkdir -p "$GITHUB_WORKSPACE"/img_port
           for i in system product system_ext mi_ext; do
             echo "正在提取$i"
-            "$GITHUB_WORKSPACE"/bin/${tools}/payload_extract -i "$GITHUB_WORKSPACE"/${ZIP_NAME_Transplantation} -t zip --extract=${i} -o "$GITHUB_WORKSPACE"/mods
+            "$GITHUB_WORKSPACE"/bin/${tools}/payload_extract -i "$GITHUB_WORKSPACE"/update.zip -t zip --extract=${i} -o "$GITHUB_WORKSPACE"/mods
             info=$(sudo python3 "$GITHUB_WORKSPACE"/bin/${tools}/gettype.py "$GITHUB_WORKSPACE"/mods/$i.img)
             echo "正在分解$i($info)"
             if [ "$info" == "ext" ]; then
