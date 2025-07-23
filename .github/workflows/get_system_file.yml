@@ -21,11 +21,8 @@ jobs:
           remove-dotnet: 'true'
           remove-android: 'true'
           remove-haskell: 'true'
-      - name: 克隆
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.SECRET_NAME }}
-          repository: Meetingf/hyperOS_A15_port
+      - name: 检出仓库文件
+        uses: actions/checkout@main
       - name: -准备环境
         run: |
           sudo timedatectl set-timezone Asia/Shanghai
@@ -44,21 +41,16 @@ jobs:
       - name: -制作rom
         run: |
           aria2c -x16 -j$(nproc) -U "Mozilla/5.0" -d "$GITHUB_WORKSPACE" -o update.zip "${URL}"
-          case "$(uname -m)" in
-              "x86_64") tools=x86 ;;
-              "aarch64"|"arm64") tools=arm64 ;;
-              *) echo "Unknown architecture: $(uname -m)" ;;
-          esac
           mkdir -p "$GITHUB_WORKSPACE"/img_port
           for i in system product system_ext mi_ext; do
             echo "正在提取$i"
-            sudo "$GITHUB_WORKSPACE"/bin/${tools}/payload_extract -i "$GITHUB_WORKSPACE"/update.zip -t zip --extract=${i} -o "$GITHUB_WORKSPACE"/mods
-            info=$(sudo python3 "$GITHUB_WORKSPACE"/bin/${tools}/gettype.py "$GITHUB_WORKSPACE"/mods/$i.img)
+            sudo "$GITHUB_WORKSPACE"/bin/payload_extract -i "$GITHUB_WORKSPACE"/update.zip -t zip --extract=${i} -o "$GITHUB_WORKSPACE"/mods
+            info=$(sudo python3 "$GITHUB_WORKSPACE"/bin/gettype.py "$GITHUB_WORKSPACE"/mods/$i.img)
             echo "正在分解$i($info)"
             if [ "$info" == "ext" ]; then
-              sudo python3 "$GITHUB_WORKSPACE"/bin/${tools}/imgextractorLinux.py "$GITHUB_WORKSPACE"/mods/$i.img "$GITHUB_WORKSPACE"/img_port >/dev/null
+              sudo python3 "$GITHUB_WORKSPACE"/bin/imgextractorLinux.py "$GITHUB_WORKSPACE"/mods/$i.img "$GITHUB_WORKSPACE"/img_port >/dev/null
             elif [ "$info" == "erofs" ]; then
-              sudo "$GITHUB_WORKSPACE"/bin/${tools}/extract.erofs -i "$GITHUB_WORKSPACE"/mods/$i.img -o "$GITHUB_WORKSPACE"/img_port -x >/dev/null
+              sudo "$GITHUB_WORKSPACE"/bin/extract.erofs -i "$GITHUB_WORKSPACE"/mods/$i.img -o "$GITHUB_WORKSPACE"/img_port -x >/dev/null
             fi
             sudo rm -rf "$GITHUB_WORKSPACE"/mods/$i.img
           done
