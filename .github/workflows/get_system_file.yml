@@ -70,7 +70,7 @@ jobs:
       - name: 📤 Post to Release (发布到 Release)
         uses: softprops/action-gh-release@v1
         with:
-          files: /home/runner/work/port_a15/port_a15/release/files.7z
+          files: /home/runner/work/port_a15/port_a15/release/files.zip
           name: file_${{ github.event.inputs.file_name }}
           tag_name: file_${{ github.event.inputs.file_name }}
           body: |
