@@ -7,6 +7,7 @@ on:
         required: true
       file_name:
         description: "待提取文件名称"
+        required: true
 
 jobs:
   build:
@@ -56,7 +57,7 @@ jobs:
           done
           mkdir -p "$GITHUB_WORKSPACE"/release
           tmpdir=$(mktemp -d)
-          sudo find "$GITHUB_WORKSPACE"/img_port -type f -iname "*nfc*" -exec rsync -R {} "$tmpdir" \;
+          sudo find "$GITHUB_WORKSPACE"/img_port -type f -iname "*${file_name}*" -exec rsync -R {} "$tmpdir" \;
           sudo 7z a -tzip -mx0 "$GITHUB_WORKSPACE"/release/files.zip "$tmpdir"/*
           sudo rm -rf "$tmpdir"
       - name: 📤 Post to Release (发布到 Release)
