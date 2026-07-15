@@ -10,14 +10,16 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-      - name: 最大化构建环境
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Maximize Build Space
         uses: easimon/maximize-build-space@master
         with:
-          swap-size-mb: 8192
-          root-reserve-mb: 4096
-          temp-reserve-mb: 4096
+          root-reserve-mb: 2048
+          temp-reserve-mb: 1024
           remove-dotnet: 'true'
           remove-android: 'true'
           remove-haskell: 'true'
